@@ -18,8 +18,8 @@
 
 using namespace std;
 
-void typesafe_sprintf_detail(size_t, std::string&) {}
-void typesafe_sprintf_detail(size_t, std::wstring&) {}
+void typesafe_sprintf_detail(size_t, string&) {}
+void typesafe_sprintf_detail(size_t, wstring&) {}
 
 wstring remove_special_charactes(const wstring& original) {
 	wstring output = L"";
@@ -34,20 +34,18 @@ wstring remove_special_charactes(const wstring& original) {
 }
 
 bool check_word_in_pwn(wstring word, httpSock& pwn) {
-	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	wstring_convert<codecvt_utf8_utf16<wchar_t>> converter;
 	ofstream file;
 	file.open("a.html");
 	stringstream url;
-	std::string narrow = converter.to_bytes(word);
+	string narrow = converter.to_bytes(word);
 	url << "/szukaj/" << narrow << ".html";
 	pwn.Get(url.str());
-	std::string info = pwn.RecNChars(30000);
+	string info = pwn.RecNChars(30000);
 	file << info;
 	file.close();
 
-	if (info.find("Nie znaleziono") == string::npos)
-		return true;
-	return false;
+	return info.find("Nie znaleziono") == string::npos;
 }
 
 bool check_word_in_local_dictionary(wstring word, vector<wstring>* hash_table) {
@@ -57,24 +55,22 @@ bool check_word_in_local_dictionary(wstring word, vector<wstring>* hash_table) {
 		if (word == hash_table[hash][i])
 			found = true;
 	}
-	if (found)
-		return true;
-	return false;
+	return found;
 }
 
-std::vector<wstring> detectNeologisms(const wstring& source, vector<wstring>* hash_table, wstring support_dictionary_path)
+vector<wstring> detect_neologisms(const wstring& source, vector<wstring>* hash_table, wstring support_dictionary_path)
 {
-	const std::locale empty_locale = std::locale::empty();
-	typedef std::codecvt_utf8<wchar_t> converter_type;
+	const locale empty_locale = locale::empty();
+	typedef codecvt_utf8<wchar_t> converter_type;
 	const converter_type* converter = new converter_type;
-	const std::locale utf8_locale = std::locale(empty_locale, converter);
+	const locale utf8_locale = locale(empty_locale, converter);
 
 	httpSock pwn("sjp.pwn.pl", DEFAULT_HTTP_PORT);
 
 	wofstream support_dictionary(support_dictionary_path, ios::app);
 	support_dictionary.imbue(utf8_locale);
 
-	size_t total_word_count = std::count(std::istreambuf_iterator<wchar_t>(wstringstream(source)), std::istreambuf_iterator<wchar_t>(), L' ') + 1;
+	size_t total_word_count = count(istreambuf_iterator<wchar_t>(wstringstream(source)), istreambuf_iterator<wchar_t>(), L' ') + 1;
 
 	vector<wstring> output;
 	wstringstream ss(source);
@@ -85,21 +81,21 @@ std::vector<wstring> detectNeologisms(const wstring& source, vector<wstring>* ha
 		if (current_word_count % 1000 == 0) {
 			system("cls");
 			double progress = static_cast<double>(current_word_count) / total_word_count * 100;
-			log(L"%x\%", progress);
+			Log(L"%x\%", progress);
 		}
-		std::locale::global(std::locale(""));
-		auto& f = std::use_facet<std::ctype<wchar_t>>(std::locale());
+		locale::global(locale(""));
+		auto& f = use_facet<ctype<wchar_t>>(locale());
 		f.tolower(&buffer[0], &buffer[0] + buffer.size());
 
 		if (!check_word_in_local_dictionary(buffer, hash_table)) {
-			log(L"Nie znaleziono slowa \"%x\" w slowniku lokalnym.\nSzukanie w slowniku online...", buffer);
+			Log(L"Nie znaleziono slowa \"%x\" w slowniku lokalnym.\nSzukanie w slowniku online...", buffer);
 			if (!check_word_in_pwn(buffer, pwn)) {
-				log(L"Podane slowo to neologizm.");
+				Log(L"Podane slowo to neologizm.");
 				output.push_back(buffer);
 				hash_table[create_hash_from_word(buffer)].push_back(buffer);
 			}
 			else {
-				log(L"Podane slowo znajduje sie w slowniku online PWN.\nZostanie dodane do pomocniczego slownika lokalnego.");
+				Log(L"Podane slowo znajduje sie w slowniku online PWN.\nZostanie dodane do pomocniczego slownika lokalnego.");
 				hash_table[create_hash_from_word(buffer)].push_back(buffer);
 				buffer.append(L"\n");
 				support_dictionary << buffer;
@@ -113,16 +109,16 @@ std::vector<wstring> detectNeologisms(const wstring& source, vector<wstring>* ha
 void main(int argc, char **argv) {
 	if (argc < 2)
 		return;
-	const std::locale empty_locale = std::locale::empty();
-    typedef std::codecvt_utf8<wchar_t> converter_type;
+	const locale empty_locale = locale::empty();
+    typedef codecvt_utf8<wchar_t> converter_type;
     const converter_type* converter = new converter_type;
-    const std::locale utf8_locale = std::locale(empty_locale, converter);
+    const locale utf8_locale = locale(empty_locale, converter);
 
 	config config = process_cfg(L"config.cfg");
 
 	if (!experimental::filesystem::exists(config.ext_dictionary_path)) {
 		size_t line_len = 0;
-		log(L"Nie znaleziono slownika\n Generowanie slownika...");
+		Log(L"Nie znaleziono slownika\n Generowanie slownika...");
 		wifstream open_office_dictionary;
 		open_office_dictionary.imbue(utf8_locale);
 		open_office_dictionary.open(config.dictionary_path);
@@ -130,7 +126,7 @@ void main(int argc, char **argv) {
 		generate_word_variants_from_aff(open_office_dictionary, line_len);
 	}
 	//------------------------------------------------------------
-	log(L"Wczytywanie slownika...");
+	Log(L"Wczytywanie slownika...");
 	wifstream dictionary;
 	dictionary.imbue(utf8_locale);
 	dictionary.open(config.ext_dictionary_path);
@@ -138,13 +134,13 @@ void main(int argc, char **argv) {
 	hash_all_dictionary_words(dictionary, hash_table);
 	dictionary.close();
 
-	log(L"Wczytywanie slownika pomocniczego...");
+	Log(L"Wczytywanie slownika pomocniczego...");
 	wifstream support_dictionary(config.supp_dictionary_path);
 	support_dictionary.imbue(utf8_locale);
 	hash_all_dictionary_words(support_dictionary, hash_table);
 	support_dictionary.close();
 	//-------------------------------------------------------------
-	log(L"Wczytywanie tekstu zrodlowego...");
+	Log(L"Wczytywanie tekstu zrodlowego...");
 	wifstream zaratustra;
 	zaratustra.imbue(utf8_locale);
 	zaratustra.open(argv[1]);
@@ -156,15 +152,15 @@ void main(int argc, char **argv) {
 	zaratustra.read(&book[0], length);
 	zaratustra.close();
 	wstring book_raw = remove_special_charactes(book);
-	auto result = detectNeologisms(book_raw, hash_table, config.supp_dictionary_path);
+	auto result = detect_neologisms(book_raw, hash_table, config.supp_dictionary_path);
 
 	wofstream neologisms;
 	neologisms.imbue(utf8_locale);
 	neologisms.open("neologisms.txt");
 
-	log(L"Znalezione neologizmy:");
+	Log(L"Znalezione neologizmy:");
 	for (int i = 0; i < result.size(); ++i) {
-		log(L"%x", result[i]);
+		Log(L"%x", result[i]);
 		neologisms << result[i] << "\n";
 	}
 

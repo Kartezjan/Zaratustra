@@ -1,7 +1,7 @@
 #include "dictionary.h"
 
-ULONG create_hash_from_word(wstring word) {
-	ULONG hash = 0;
+ulong create_hash_from_word(wstring word) {
+	ulong hash = 0;
 	for (int i = 0; i < 6; ++i) {
 		hash += (static_cast<unsigned long long>(word[(2 * i) % word.size()]) % 16) * static_cast<unsigned long long>(pow(16, i));
 	}
@@ -29,7 +29,7 @@ ULONG create_hash_from_word(wstring word) {
 	return hashed.to_ullong();
 }*/
 
-void test_hash_table_thread(std::vector<wstring>* hash_table, std::vector<pair<size_t, std::vector<wstring>*> >* result_table, ULONG a, ULONG b)
+void test_hash_table_thread(vector<wstring>* hash_table, vector<pair<size_t, vector<wstring>*> >* result_table, ulong a, ulong b)
 {
 	for (size_t i = a; i < b; ++i) {
 		if (hash_table[i].size() == 0) {
@@ -41,7 +41,7 @@ void test_hash_table_thread(std::vector<wstring>* hash_table, std::vector<pair<s
 	}
 }
 
-void test_hash_table(std::vector<wstring>* hash_table, std::vector<pair<size_t, std::vector<wstring>*> >* result_table)
+void test_hash_table(vector<wstring>* hash_table, vector<pair<size_t, vector<wstring>*> >* result_table)
 {
 	thread threads[8];
 	for (int i = 0; i < 8; ++i)
@@ -50,7 +50,7 @@ void test_hash_table(std::vector<wstring>* hash_table, std::vector<pair<size_t, 
 		threads[i].join();
 }
 
-void hash_all_dictionary_words(wifstream& dictionary, std::vector<wstring>* hash_table) {
+void hash_all_dictionary_words(wifstream& dictionary, vector<wstring>* hash_table) {
 	wstring current;
 	while (dictionary >> current) {
 		size_t pos = current.find_first_of(L"/");
@@ -60,11 +60,11 @@ void hash_all_dictionary_words(wifstream& dictionary, std::vector<wstring>* hash
 
 	}
 
-	//std::vector<pair<size_t, std::vector<wstring>*> > crowdedHashes;
+	//vector<pair<size_t, vector<wstring>*> > crowdedHashes;
 
 	//test_hash_table(hash_table, &crowdedHashes);
 
-	//sort(crowdedHashes.begin(), crowdedHashes.end(), [](pair<size_t, std::vector<wstring>*> a, pair<size_t, std::vector<wstring>*> b) {
+	//sort(crowdedHashes.begin(), crowdedHashes.end(), [](pair<size_t, vector<wstring>*> a, pair<size_t, vector<wstring>*> b) {
 	//	return a.second->size() > b.second->size();
 	//});
 
@@ -74,7 +74,7 @@ void hash_all_dictionary_words(wifstream& dictionary, std::vector<wstring>* hash
 	//}
 }
 
-void read_aff_file(wifstream& aff_file, std::vector<affix_flag>* affix_array){
+void read_aff_file(wifstream& aff_file, vector<affix_flag>* affix_array){
 	wstring current_line;
 	current_line.resize(1024);
 	while (aff_file.getline(&current_line[0], 1024) ) {
@@ -215,10 +215,10 @@ wstring substract_flags(wstring &entry) {
 	return flags;
 }
 
-void mutate_word(wstring word, wstring flags, std::vector<affix_flag>* affix_array, wstring* destination) {
+void mutate_word(wstring word, wstring flags, vector<affix_flag>* affix_array, wstring* destination) {
 	for (int i = 0; i < flags.size(); ++i) {
 		bool SFX = true; //SFX if true, PFX otherwise
-		std::vector<affix_entry>* affixes = &affix_array[flags[i]][0].entries;
+		vector<affix_entry>* affixes = &affix_array[flags[i]][0].entries;
 		if (affix_array[flags[i]][0].type != L"SFX") {
 			for (int j = 0; j < affixes->size(); ++j) {
 				wstring word_copy = word;
@@ -247,7 +247,7 @@ void mutate_word(wstring word, wstring flags, std::vector<affix_flag>* affix_arr
 	}
 }
 
-void word_mutation_thread(wstring content, std::vector<affix_flag>* affix_array, wstring* destination) {
+void word_mutation_thread(wstring content, vector<affix_flag>* affix_array, wstring* destination) {
 	wstringstream content_stream(content);
 	wstring current_word;
 	while (content_stream >> current_word) {
@@ -276,12 +276,12 @@ void generate_word_variants_from_aff(wifstream& dictionary, size_t line_count) {
 	thread threads[MAX_THREADS];
 	wstring sources[MAX_THREADS];
 	wstring destinations[MAX_THREADS];
-	const std::locale empty_locale = std::locale::empty();
-	typedef std::codecvt_utf8<wchar_t> converter_type;
+	const locale empty_locale = locale::empty();
+	typedef codecvt_utf8<wchar_t> converter_type;
 	const converter_type* converter = new converter_type;
-	const std::locale utf8_locale = std::locale(empty_locale, converter);
+	const locale utf8_locale = locale(empty_locale, converter);
 
-	std::vector<affix_flag>* affix_array = new std::vector<affix_flag>[128];
+	vector<affix_flag>* affix_array = new vector<affix_flag>[128];
 	wifstream aff_file(config.aff_file_path);
 	aff_file.imbue(utf8_locale);
 	read_aff_file(aff_file, affix_array);

@@ -77,7 +77,7 @@ std::wstring typesafe_sprintf(std::wstring f, A&&... a) {
 }
 
 template<typename... A>
-void log(std::wstring f, A&&... a) {
+void Log(std::wstring f, A&&... a) {
 	auto generated_string = typesafe_sprintf(f, std::forward<A>(a)...);
 	const std::locale empty_locale = std::locale::empty();
 	typedef std::codecvt_utf8<wchar_t> converter_type;

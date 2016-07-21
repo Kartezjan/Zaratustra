@@ -1,7 +1,7 @@
 #include "config.h"
 
-std::vector<config_entry> load_cfg_file(std::wifstream &config_file) {
-	std::vector<config_entry> output;
+vector<config_entry> load_cfg_file(wifstream &config_file) {
+	vector<config_entry> output;
 	wstring buffer;
 	buffer.resize(1024);
 	while (config_file.getline(&buffer[0], 1024)) {
@@ -35,10 +35,10 @@ std::vector<config_entry> load_cfg_file(std::wifstream &config_file) {
 }
 
 config process_cfg(wstring cfg_path) {
-	const std::locale empty_locale = std::locale::empty();
-	typedef std::codecvt_utf8<wchar_t> converter_type;
+	const locale empty_locale = locale::empty();
+	typedef codecvt_utf8<wchar_t> converter_type;
 	const converter_type* converter = new converter_type;
-	const std::locale utf8_locale = std::locale(empty_locale, converter);
+	const locale utf8_locale = locale(empty_locale, converter);
 	wifstream cfg_file(cfg_path);
 	cfg_file.imbue(utf8_locale);
 	auto entries = load_cfg_file(cfg_file);

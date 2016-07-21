@@ -16,11 +16,13 @@
 
 #include "config.h"
 
-#define ULONG unsigned long long
 #define DICTIONARY_HASH_TABLE_SIZE 16777216
 #define MAX_THREADS 3
 
 using namespace std;
+
+typedef unsigned long long ulong;
+
 
 enum CONDITION_TYPE {STRING_OCCURS, FOLLOWING_CHARS_OCCUR, FOLLOWING_CHARS_NOT_OCCUR};
 
@@ -61,5 +63,5 @@ struct affix_flag {
 
 
 void hash_all_dictionary_words(wifstream& dictionary, std::vector<wstring>* hash_table);
-ULONG create_hash_from_word(wstring word);
+ulong create_hash_from_word(wstring word);
 void generate_word_variants_from_aff(wifstream& dictionary, size_t line_len);
