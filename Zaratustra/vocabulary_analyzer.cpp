@@ -48,8 +48,8 @@ bool check_word_in_pwn(wstring word, httpSock& pwn) {
 	return info.find("Nie znaleziono") == string::npos;
 }
 
-bool check_word_in_local_dictionary(wstring word, vector<wstring>* hash_table) {
-	auto hash = create_hash_from_word(word);
+bool check_word_in_local_dictionary(wstring word, vector<vector<wstring>> &hash_table) {
+	auto hash = calculate_hash_from_word(word);
 	bool found = false;
 	for (int i = 0; i < hash_table[hash].size();++i) {
 		if (word == hash_table[hash][i])
@@ -58,7 +58,7 @@ bool check_word_in_local_dictionary(wstring word, vector<wstring>* hash_table) {
 	return found;
 }
 
-vector<wstring> detect_neologisms(const wstring& source, vector<wstring>* hash_table, wstring support_dictionary_path)
+vector<wstring> detect_neologisms(const wstring& source, vector<vector<wstring>> &hash_table, wstring support_dictionary_path)
 {
 	const locale empty_locale = locale::empty();
 	typedef codecvt_utf8<wchar_t> converter_type;
@@ -92,11 +92,11 @@ vector<wstring> detect_neologisms(const wstring& source, vector<wstring>* hash_t
 			if (!check_word_in_pwn(buffer, pwn)) {
 				Log(L"Podane slowo to neologizm.");
 				output.push_back(buffer);
-				hash_table[create_hash_from_word(buffer)].push_back(buffer);
+				hash_table[calculate_hash_from_word(buffer)].push_back(buffer);
 			}
 			else {
 				Log(L"Podane slowo znajduje sie w slowniku online PWN.\nZostanie dodane do pomocniczego slownika lokalnego.");
-				hash_table[create_hash_from_word(buffer)].push_back(buffer);
+				hash_table[calculate_hash_from_word(buffer)].push_back(buffer);
 				buffer.append(L"\n");
 				support_dictionary << buffer;
 			}
@@ -127,23 +127,38 @@ void main(int argc, char **argv) {
 	}
 	//------------------------------------------------------------
 	Log(L"Wczytywanie slownika...");
+	if (!experimental::filesystem::exists(config.zst_main_file_path)) {
+		ofstream ext_dic_bin_output(config.zst_main_file_path, ios::binary);
+		wifstream dictionary;
+		dictionary.imbue(utf8_locale);
+		dictionary.open(config.ext_dictionary_path);
+		hash_all_dictionary_words(dictionary, ext_dic_bin_output);
+		dictionary.close();
+		ext_dic_bin_output.close();
+	}
+	vector<vector<wstring>> hash_table;
+	hash_table.resize(DICTIONARY_HASH_TABLE_SIZE);
+	ifstream ext_dic_bin_input(config.zst_main_file_path, ios::binary);
+	load_hash_table_from_file(ext_dic_bin_input, hash_table);
+	ext_dic_bin_input.close();
+	Log(L"Wczytywanie slownika pomocniczego...");
+	ofstream supp_dic_bin_output(config.zst_supp_file_path, ios::binary);
+	ifstream supp_dic_bin_input(config.zst_supp_file_path, ios::binary);
 	wifstream dictionary;
 	dictionary.imbue(utf8_locale);
-	dictionary.open(config.ext_dictionary_path);
-	vector<wstring>* hash_table = new vector<wstring>[DICTIONARY_HASH_TABLE_SIZE];
-	hash_all_dictionary_words(dictionary, hash_table);
+	dictionary.open(config.supp_dictionary_path);
+	hash_all_dictionary_words(dictionary, supp_dic_bin_output);
+	supp_dic_bin_output.close();
 	dictionary.close();
-
-	Log(L"Wczytywanie slownika pomocniczego...");
-	wifstream support_dictionary(config.supp_dictionary_path);
-	support_dictionary.imbue(utf8_locale);
-	hash_all_dictionary_words(support_dictionary, hash_table);
-	support_dictionary.close();
+	load_hash_table_from_file(supp_dic_bin_input, hash_table);
+	supp_dic_bin_input.close();
 	//-------------------------------------------------------------
 	Log(L"Wczytywanie tekstu zrodlowego...");
 	wifstream zaratustra;
 	zaratustra.imbue(utf8_locale);
 	zaratustra.open(argv[1]);
+	if (!zaratustra.is_open())
+		return;
 	zaratustra.seekg(0, zaratustra.end);
 	size_t length = zaratustra.tellg();
 	zaratustra.seekg(0, zaratustra.beg);

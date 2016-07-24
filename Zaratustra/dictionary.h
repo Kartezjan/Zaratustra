@@ -5,14 +5,17 @@
 #include <vector>
 #include <algorithm>
 #include <thread>
-#include <mutex>
 #include <fstream>
 #include <sstream>
 #include <locale>
 #include <codecvt>
-#include <wchar.h>
 #include <algorithm>
-#include <istream>
+#include <tuple>
+#include "cereal\cereal.hpp"
+#include "cereal\archives\binary.hpp"
+#include "cereal\types\vector.hpp"
+#include "cereal\types\utility.hpp"
+#include "cereal\types\string.hpp"
 
 #include "config.h"
 
@@ -62,6 +65,7 @@ struct affix_flag {
 };
 
 
-void hash_all_dictionary_words(wifstream& dictionary, std::vector<wstring>* hash_table);
-ulong create_hash_from_word(wstring word);
+void hash_all_dictionary_words(wifstream& dictionary, ofstream& zst_file);
+size_t calculate_hash_from_word(wstring word);
 void generate_word_variants_from_aff(wifstream& dictionary, size_t line_len);
+void load_hash_table_from_file(ifstream &input, vector<vector<wstring>> &hash_table);

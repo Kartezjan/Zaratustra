@@ -24,6 +24,10 @@ vector<config_entry> load_cfg_file(wifstream &config_file) {
 			entry.type = CFG_SUPP_DICTIONARY;
 		else if (buffer == L"aff_file")
 			entry.type = CFG_AFF_FILE;
+		else if (buffer == L"zst_main_file")
+			entry.type = CFG_ZST_MAIN_FILE;
+		else if (buffer == L"zst_supp_file")
+			entry.type = CFG_ZST_SUPP_FILE;
 		else
 			entry.type = CFG_UNKNOWN;
 		entry.value = value;
@@ -56,6 +60,12 @@ config process_cfg(wstring cfg_path) {
 			break;
 		case CFG_AFF_FILE:
 			configured.aff_file_path = entries[i].value;
+			break;
+		case CFG_ZST_MAIN_FILE:
+			configured.zst_main_file_path = entries[i].value;
+			break;
+		case CFG_ZST_SUPP_FILE:
+			configured.zst_supp_file_path = entries[i].value;
 			break;
 		}
 

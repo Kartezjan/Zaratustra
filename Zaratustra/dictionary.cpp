@@ -1,77 +1,38 @@
 #include "dictionary.h"
 
-ulong create_hash_from_word(wstring word) {
-	ulong hash = 0;
+size_t calculate_hash_from_word(wstring word) {
+	size_t hash = 0;
 	for (int i = 0; i < 6; ++i) {
 		hash += (static_cast<unsigned long long>(word[(2 * i) % word.size()]) % 16) * static_cast<unsigned long long>(pow(16, i));
 	}
 	return hash;
 }
 
-/*ULONG create_hash_from_word(wstring word) {
-	ULONG initial_hash = 0;
-	int k = 0;
-	int l = 0;
-	size_t max = word.size() > 6 ? 6 : word.size();
-	for (size_t i = 0; i < max; ++i)
-		initial_hash += (static_cast<unsigned long long>(word[(3 * i) % word.size()]) % 256) * static_cast<unsigned long long>(pow(256, i));
-	bitset<64> bit_array(initial_hash);
-	bitset<24> hashed(0);
-	for (size_t i = 0; i < 6; ++i) {
-		for (size_t j = 0; j < 4; ++j) {
-			if (bit_array.test(l + j)) {
-				hashed.set(k);
-			}
-			++k;
-		}
-		l += 8;
-	}
-	return hashed.to_ullong();
-}*/
-
-void test_hash_table_thread(vector<wstring>* hash_table, vector<pair<size_t, vector<wstring>*> >* result_table, ulong a, ulong b)
-{
-	for (size_t i = a; i < b; ++i) {
-		if (hash_table[i].size() == 0) {
-		}
-		else if (hash_table[i].size() > 0) {
-			auto result = make_pair(i, &hash_table[i]);
-			result_table->push_back(result);
-		}
-	}
+void process_archive(cereal::BinaryInputArchive& archive, vector<pair<size_t, wstring > > &archive_table) {
+	archive(archive_table);
 }
 
-void test_hash_table(vector<wstring>* hash_table, vector<pair<size_t, vector<wstring>*> >* result_table)
-{
-	thread threads[8];
-	for (int i = 0; i < 8; ++i)
-		threads[i] = thread(test_hash_table_thread, hash_table, result_table, (i / 8) * DICTIONARY_HASH_TABLE_SIZE, (i + 1) / 8 * DICTIONARY_HASH_TABLE_SIZE);
-	for (int i = 0; i < 8; ++i)
-		threads[i].join();
+void load_hash_table_from_file(ifstream &input, vector<vector<wstring>> &hash_table) {
+	vector<pair<size_t, wstring > > hashed_words;
+	cereal::BinaryInputArchive archive(input);
+	process_archive(archive, hashed_words);
+	
+	for (int i = 0; i < hashed_words.size();++i)
+		hash_table[get<0>(hashed_words[i])].push_back(get<1>(hashed_words[i]));
 }
 
-void hash_all_dictionary_words(wifstream& dictionary, vector<wstring>* hash_table) {
+void hash_all_dictionary_words(wifstream& dictionary, ofstream& zst_output_file) {
+	vector<pair<size_t, wstring > > hashed_words;
 	wstring current;
 	while (dictionary >> current) {
 		size_t pos = current.find_first_of(L"/");
 		if (pos != wstring::npos)
 			current.erase(pos, wstring::npos);
-		hash_table[create_hash_from_word(current)].push_back(current);
+		hashed_words.push_back(make_pair(calculate_hash_from_word(current), current));
+		}
 
-	}
-
-	//vector<pair<size_t, vector<wstring>*> > crowdedHashes;
-
-	//test_hash_table(hash_table, &crowdedHashes);
-
-	//sort(crowdedHashes.begin(), crowdedHashes.end(), [](pair<size_t, vector<wstring>*> a, pair<size_t, vector<wstring>*> b) {
-	//	return a.second->size() > b.second->size();
-	//});
-
-	//int sum = 0;
-	//for (int i = 0; i < crowdedHashes.size(); ++i) {
-	//	sum += crowdedHashes[i].second->size();
-	//}
+	cereal::BinaryOutputArchive archive(zst_output_file);
+	archive(hashed_words);
 }
 
 void read_aff_file(wifstream& aff_file, vector<affix_flag>* affix_array){
