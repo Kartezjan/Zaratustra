@@ -28,12 +28,14 @@ void write_all_sentences_with_specific_words(wstring filepath, wstring word_list
 	wofstream output("output.txt", ios::app);
 	output.imbue(utf8_locale);
 
+	Log(L"Reading aff file...");
 	vector<affix_flag>* affix_array = new vector<affix_flag>[128];
 	wifstream aff_file(cfg.aff_file_path);
 	aff_file.imbue(utf8_locale);
 	read_aff_file(aff_file, affix_array);
 	aff_file.close();
 
+	Log(L"Searching for specified words...");
 	aff_file.open(word_list_path);
 	wstring words;
 	wchar_t *buffer = new wchar_t[1024];
@@ -60,11 +62,16 @@ void write_all_sentences_with_specific_words(wstring filepath, wstring word_list
 	wchar_t *current_text_line = new wchar_t[262144];
 	aff_file.open(filepath);
 	while (aff_file.getline(current_text_line, 262144)) {
-		wstring current_line(current_text_line);
-		size_t dot_pos = current_line.find_first_of(L'.?!');
-		while (dot_pos != wstring::npos) {
+	wstring current_line(current_text_line);
+		size_t dot_pos = current_line.find_first_of(L".?!");
+		while (current_line.size() != 0) {
 			wstring current_sentence;
-			current_sentence.resize(dot_pos + 1);
+			if (dot_pos != wstring::npos)
+				current_sentence.resize(dot_pos + 1);
+			else {
+				current_sentence.resize(current_line.size());
+				--dot_pos; 
+			}
 			current_line.copy(&current_sentence[0], dot_pos, 0);
 			current_line.erase(0, dot_pos + 1);
 			if (match_words(current_sentence, word_list)) {
@@ -72,7 +79,7 @@ void write_all_sentences_with_specific_words(wstring filepath, wstring word_list
 				current_sentence.append(L"\n");
 				output.write(&current_sentence[0], current_sentence.size());
 			}
-			dot_pos = current_line.find_first_of(L'.?!');
+			dot_pos = current_line.find_first_of(L".?!");
 		}
 	}
 	output.close();
