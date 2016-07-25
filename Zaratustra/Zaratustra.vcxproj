@@ -200,13 +200,20 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="dictionary.h" />
     <ClInclude Include="httpsock.h" />
+    <ClInclude Include="simple_script_parser.h" />
     <ClInclude Include="typesafe_sprintf.h" />
+    <ClInclude Include="vocabulary_analyzer.h" />
+    <ClInclude Include="word_search.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="config.cpp" />
     <ClCompile Include="dictionary.cpp" />
     <ClCompile Include="httpsock.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="simple_script_parser.cpp" />
+    <ClCompile Include="typesafe_sprintf.cpp" />
     <ClCompile Include="vocabulary_analyzer.cpp" />
+    <ClCompile Include="word_search.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cereal\external\rapidxml\manual.html" />

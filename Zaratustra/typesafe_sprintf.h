@@ -7,6 +7,7 @@
 #include <fstream>
 #include <locale>
 #include <codecvt>
+#include <ctime>
 
 void typesafe_sprintf_detail(size_t, std::string&);
 
@@ -78,7 +79,13 @@ std::wstring typesafe_sprintf(std::wstring f, A&&... a) {
 
 template<typename... A>
 void Log(std::wstring f, A&&... a) {
-	auto generated_string = typesafe_sprintf(f, std::forward<A>(a)...);
+	auto now = time(0);
+	tm date_struct;
+	localtime_s(&date_struct, &now);
+	char buffer[256];
+	strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S ", &date_struct);
+	auto generated_string = typesafe_sprintf(L"%x", buffer);
+	generated_string.append(typesafe_sprintf(f, std::forward<A>(a)...));
 	const std::locale empty_locale = std::locale::empty();
 	typedef std::codecvt_utf8<wchar_t> converter_type;
 	const converter_type* converter = new converter_type;

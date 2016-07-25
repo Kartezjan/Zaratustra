@@ -1,25 +1,4 @@
-﻿#include <iostream>
-#include <fstream>
-#include <locale>
-#include <codecvt>
-#include <vector>
-#include <sstream>
-#include <stdlib.h>
-#include <bitset>
-#include <filesystem>
-
-#include "httpsock.h"
-#include "dictionary.h"
-#include "typesafe_sprintf.h"
-#include "config.h"
-
-#define ULONG unsigned long long
-#define DICTIONARY_HASH_TABLE_SIZE 16777216
-
-using namespace std;
-
-void typesafe_sprintf_detail(size_t, string&) {}
-void typesafe_sprintf_detail(size_t, wstring&) {}
+﻿#include "vocabulary_analyzer.h"
 
 wstring remove_special_charactes(const wstring& original) {
 	wstring output = L"";
@@ -106,15 +85,11 @@ vector<wstring> detect_neologisms(const wstring& source, vector<vector<wstring>>
 	return output;
 }
 
-void main(int argc, char **argv) {
-	if (argc < 2)
-		return;
+void vocabulary_analyzer(wstring filename, config &config) {
 	const locale empty_locale = locale::empty();
     typedef codecvt_utf8<wchar_t> converter_type;
     const converter_type* converter = new converter_type;
     const locale utf8_locale = locale(empty_locale, converter);
-
-	config config = process_cfg(L"config.cfg");
 
 	if (!experimental::filesystem::exists(config.ext_dictionary_path)) {
 		size_t line_len = 0;
@@ -156,7 +131,7 @@ void main(int argc, char **argv) {
 	Log(L"Wczytywanie tekstu zrodlowego...");
 	wifstream zaratustra;
 	zaratustra.imbue(utf8_locale);
-	zaratustra.open(argv[1]);
+	zaratustra.open(filename);
 	if (!zaratustra.is_open())
 		return;
 	zaratustra.seekg(0, zaratustra.end);

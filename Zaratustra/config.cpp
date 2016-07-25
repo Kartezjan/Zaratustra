@@ -5,6 +5,8 @@ vector<config_entry> load_cfg_file(wifstream &config_file) {
 	wstring buffer;
 	buffer.resize(1024);
 	while (config_file.getline(&buffer[0], 1024)) {
+		if (buffer[0] == L';')
+			continue;
 		wstring value;
 		config_entry entry;
 		value.resize(1024);
@@ -25,7 +27,7 @@ vector<config_entry> load_cfg_file(wifstream &config_file) {
 		else if (buffer == L"aff_file")
 			entry.type = CFG_AFF_FILE;
 		else if (buffer == L"zst_main_file")
-			entry.type = CFG_ZST_MAIN_FILE;
+			entry.type = CFG_ZST_MAIN_FILE; 
 		else if (buffer == L"zst_supp_file")
 			entry.type = CFG_ZST_SUPP_FILE;
 		else

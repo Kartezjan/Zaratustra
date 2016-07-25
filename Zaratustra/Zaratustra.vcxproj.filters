@@ -267,6 +267,15 @@
     <ClInclude Include="cereal\types\vector.hpp">
       <Filter>Header Files\cereal</Filter>
     </ClInclude>
+    <ClInclude Include="vocabulary_analyzer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="simple_script_parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="word_search.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="config.cpp">
@@ -279,6 +288,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="vocabulary_analyzer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="word_search.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="simple_script_parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="typesafe_sprintf.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

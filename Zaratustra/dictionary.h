@@ -69,3 +69,6 @@ void hash_all_dictionary_words(wifstream& dictionary, ofstream& zst_file);
 size_t calculate_hash_from_word(wstring word);
 void generate_word_variants_from_aff(wifstream& dictionary, size_t line_len);
 void load_hash_table_from_file(ifstream &input, vector<vector<wstring>> &hash_table);
+void mutate_word(wstring word, wstring flags, vector<affix_flag>* affix_array, wstring* destination);
+void read_aff_file(wifstream& aff_file, vector<affix_flag>* affix_array);
+wstring substract_flags(wstring &entry);
