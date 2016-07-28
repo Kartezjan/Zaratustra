@@ -29,7 +29,7 @@ void write_all_sentences_with_specific_words(wstring filepath, wstring word_list
 	output.imbue(utf8_locale);
 
 	Log(L"Reading aff file...");
-	vector<affix_flag>* affix_array = new vector<affix_flag>[128];
+	vector<affix_flag> affix_array[128];
 	wifstream aff_file(cfg.aff_file_path);
 	aff_file.imbue(utf8_locale);
 	read_aff_file(aff_file, affix_array);
@@ -38,7 +38,7 @@ void write_all_sentences_with_specific_words(wstring filepath, wstring word_list
 	Log(L"Searching for specified words...");
 	aff_file.open(word_list_path);
 	wstring words;
-	wchar_t *buffer = new wchar_t[1024];
+	wchar_t buffer[1024];
 	while (aff_file.getline(buffer, 1024)) {
 		wstring current(buffer);
 		auto flags = substract_flags(current);
@@ -55,11 +55,7 @@ void write_all_sentences_with_specific_words(wstring filepath, wstring word_list
 	while (wss >> current_word)
 		word_list.push_back(current_word);
 
-
-	delete[] buffer;
-	delete[] affix_array;
-
-	wchar_t *current_text_line = new wchar_t[262144];
+	wchar_t current_text_line[262144];
 	aff_file.open(filepath);
 	while (aff_file.getline(current_text_line, 262144)) {
 	wstring current_line(current_text_line);

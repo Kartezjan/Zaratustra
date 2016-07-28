@@ -153,5 +153,4 @@ void vocabulary_analyzer(wstring filename, config &config) {
 		Log(L"%x", result[i]);
 		neologisms << result[i] << "\n";
 	}
-
 }
